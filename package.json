@@ -2,7 +2,7 @@
   "author": "WayRay",
   "name": "wr-react-datepicker",
   "description": "A simple and reusable datepicker component for React (WayRay fork)",
-  "version": "0.42.0",
+  "version": "0.43.0",
   "license": "MIT",
   "homepage": "https://github.com/Odrin/react-datepicker",
   "main": "dist/react-datepicker.min.js",
@@ -10,7 +10,8 @@
   "files": [
     "*.md",
     "dist",
-    "lib"
+    "lib",
+    "src/stylesheets"
   ],
   "keywords": [
     "react",

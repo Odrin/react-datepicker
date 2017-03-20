@@ -1,7 +1,6 @@
 import DateInput from './date_input'
 import Calendar from './calendar'
 import React from 'react'
-import defer from 'lodash/defer'
 import TetherComponent from './tether_component'
 import classnames from 'classnames'
 import {isSameDay, isDayDisabled, isDayInRange} from './date_utils'
@@ -106,10 +105,11 @@ var DatePicker = React.createClass({
   },
 
   getInitialState () {
+    const defaultPreSelection = this.props.openToDate ? moment(this.props.openToDate) : moment()
     return {
       open: false,
       preventFocus: false,
-      preSelection: this.props.selected ? moment(this.props.selected) : moment()
+      preSelection: this.props.selected ? moment(this.props.selected) : defaultPreSelection
     }
   },
 
@@ -148,7 +148,7 @@ var DatePicker = React.createClass({
 
   deferFocusInput () {
     this.cancelFocusInput()
-    this.inputFocusTimeout = defer(() => this.setFocus())
+    this.inputFocusTimeout = window.setTimeout(() => this.setFocus(), 1)
   },
 
   handleDropdownFocus () {
@@ -308,6 +308,7 @@ var DatePicker = React.createClass({
         onClickOutside={this.handleCalendarClickOutside}
         highlightDates={this.props.highlightDates}
         includeDates={this.props.includeDates}
+        inline={this.props.inline}
         peekNextMonth={this.props.peekNextMonth}
         showMonthDropdown={this.props.showMonthDropdown}
         showWeekNumbers={this.props.showWeekNumbers}
@@ -372,19 +373,23 @@ var DatePicker = React.createClass({
   render () {
     const calendar = this.renderCalendar()
 
-    if (this.props.inline) {
+    if (this.props.inline && !this.props.withPortal) {
       return calendar
     }
 
     if (this.props.withPortal) {
       return (
         <div>
-          <div className="react-datepicker__input-container">
-            {this.renderDateInput()}
-            {this.renderClearButton()}
-          </div>
           {
-          this.state.open
+          !this.props.inline
+          ? <div className="react-datepicker__input-container">
+              {this.renderDateInput()}
+              {this.renderClearButton()}
+            </div>
+          : null
+          }
+          {
+          this.state.open || this.props.inline
           ? <div className="react-datepicker__portal">
               {calendar}
             </div>
