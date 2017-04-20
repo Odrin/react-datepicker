@@ -41,15 +41,13 @@ import Tabs from './examples/tabs'
 import 'react-datepicker/dist/react-datepicker.css'
 import './style.scss'
 
-export default React.createClass({
-  displayName: 'exampleComponents',
-
+export default class exampleComponents extends React.Component {
   componentDidMount () {
     hljs.initHighlightingOnLoad()
-  },
+  }
 
-  examples: [
-    {
+  examples = [{
+
       title: 'Default',
       component: <Default />
     },
@@ -188,26 +186,23 @@ export default React.createClass({
     {
       title: 'Year/month tabs',
       component: <Tabs/>
-    }
-  ],
+    }]
 
-  renderExamples () {
-    return this.examples.map((example, index) =>
+  renderExamples = () =>
+    this.examples.map((example, index) =>
       <CodeExampleComponent key={`example-${index}`} id={index} title={example.title}>
         {example.component}
       </CodeExampleComponent>
     )
-  },
 
-  renderLeftColumn () {
-    return this.examples.map((example, index) =>
+  renderLeftColumn = () =>
+    this.examples.map((example, index) =>
       <li className="examples__navigation-item" key={`link-${index}`}>
         <a href={`#example-${index}`}>
           {example.title}
         </a>
       </li>
     )
-  },
 
   render () {
     return <div>
@@ -220,4 +215,4 @@ export default React.createClass({
       </div>
     </div>
   }
-})
+}

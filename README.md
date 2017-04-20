@@ -22,36 +22,37 @@ npm install react-datepicker --save
 You’ll need to install React and Moment.js separately since those dependencies aren’t included in the package. Below is a simple example on how to use the Datepicker in a React view. You will also need to require the css file from this package (or provide your own). The example below shows how to include the css from this package if your build system supports requiring css files (webpack is one that does).
 
 ```js
-var React = require('react');
-var DatePicker = require('react-datepicker');
-var moment = require('moment');
+import React from 'react';
+import DatePicker from 'react-datepicker';
+import moment from 'moment';
 
-require('react-datepicker/dist/react-datepicker.css');
+import 'react-datepicker/dist/react-datepicker.css';
 
 // CSS Modules, react-datepicker-cssmodules.css
-// require('react-datepicker/dist/react-datepicker-cssmodules.css');
+// import 'react-datepicker/dist/react-datepicker-cssmodules.css';
 
-var Example = React.createClass({
-  displayName: 'Example',
-
-  getInitialState: function() {
-    return {
+class Example extends React.Component {
+  constructor (props) {
+    super(props)
+    this.state = {
       startDate: moment()
     };
-  },
+    this.handleChange = this.handleChange.bind(this);
+  }
 
-  handleChange: function(date) {
+  handleChange(date) {
     this.setState({
       startDate: date
     });
-  },
+  }
 
-  render: function() {
+  render() {
     return <DatePicker
         selected={this.state.startDate}
-        onChange={this.handleChange} />;
+        onChange={this.handleChange}
+    />;
   }
-});
+}
 ```
 
 ## Configuration
@@ -61,6 +62,17 @@ The most basic use of the DatePicker can be described with:
 ```js
 <DatePicker selected={this.state.date} onChange={this.handleChange} />
 ```
+
+You can use `onSelect` event handler which fires each time some calendar date has been selected
+
+```js
+<DatePicker selected={this.state.date}
+  onSelect={this.handleSelect //when day is clicked}
+  onChange={this.handleChange //only when value has changed}
+/>
+```
+
+`onClickOutside` handler may be useful to close datepicker in `inline` mode
 
 See [here](https://github.com/Hacker0x01/react-datepicker/blob/master/docs/datepicker.md) for a full list of props that may be passed to the component. Examples are given on the [main website](https://hacker0x01.github.io/react-datepicker).
 
@@ -94,9 +106,9 @@ Unfortunately it is difficult to support legacy browsers while maintaining our a
 
 ## Local Development
 
-The `master` branch contains the latest version of the Datepicker component. To start your example app, you can run `npm start`. This starts a simple webserver on http://localhost:8080.
+The `master` branch contains the latest version of the Datepicker component. To start your example app, you can run `yarn start`. This starts a simple webserver on http://localhost:8080.
 
-You can run `npm test` to execute the test suite and linters. To help you develop the component we’ve set up some tests that covers the basic functionality (can be found in  `/tests`). Even though we’re big fans of testing, this only covers a small piece of the component. We highly recommend you add tests when you’re adding new functionality.
+You can run `yarn test` to execute the test suite and linters. To help you develop the component we’ve set up some tests that covers the basic functionality (can be found in  `/tests`). Even though we’re big fans of testing, this only covers a small piece of the component. We highly recommend you add tests when you’re adding new functionality.
 
 ### The examples
 The examples are hosted within the docs folder and are ran in the simple add that loads the Datepicker. To extend the examples with a new example, you can simply duplicate one of the existing examples and change the unique properties of your example.

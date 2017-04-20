@@ -218,16 +218,16 @@ describe('DatePicker', () => {
   })
 
   it('should mount and unmount properly', done => {
-    var TestComponent = React.createClass({
-      displayName: 'TestComponent',
+    class TestComponent extends React.Component {
+      constructor (props) {
+        super(props)
+        this.state = { mounted: true }
+      }
 
-      getInitialState () {
-        return { mounted: true }
-      },
       render () {
         return this.state.mounted ? <DatePicker /> : null
       }
-    })
+    }
     var element = TestUtils.renderIntoDocument(<TestComponent />)
     element.setState({ mounted: false }, done)
   })
@@ -503,6 +503,27 @@ describe('DatePicker', () => {
 
     expect(tmzDatePicker.find('input').prop('value')).to.equal('2016-11-22 06:00')
   })
+  it('should correctly update the input when the value prop changes', () => {
+    const datePicker = mount(<DatePicker />)
+    expect(datePicker.find('input').prop('value')).to.equal('')
+    datePicker.setProps({value: 'foo'})
+    expect(datePicker.find('input').prop('value')).to.equal('foo')
+  })
+  it('should preserve user input as they are typing', () => {
+    const onChange = date => datePicker.setProps({selected: date})
+    const datePicker = mount(
+      <DatePicker dateFormat={['YYYY-MM-DD', 'MM/DD/YYYY', 'MM/DD/YY']} onChange={onChange}/>
+    )
+    const input = datePicker.find('input')
+    expect(input.prop('value')).to.equal('')
+
+    const str = '12/30/1982'
+    str.split('').forEach((c, i) => {
+      input.simulate('change', {target: { value: input.prop('value') + c }})
+      expect(input.prop('value')).to.equal(str.substring(0, i + 1))
+    })
+    expect(datePicker.prop('selected').format('YYYY-MM-DD')).to.equal('1982-12-30')
+  })
   it('should invoke provided onChangeRaw function on manual input change', () => {
     const inputValue = 'test'
     const onChangeRawSpy = sandbox.spy()
@@ -516,6 +537,18 @@ describe('DatePicker', () => {
     expect(onChangeRawSpy.calledOnce).to.be.true
     expect(onChangeRawSpy.args[0][0].target.value).to.equal(inputValue)
   })
+  it('should allow onChangeRaw to prevent a change', () => {
+    const onChangeRaw = e => e.target.value > '2' && e.preventDefault()
+    const datePicker = mount(
+      <DatePicker onChangeRaw={onChangeRaw} />
+    )
+    const input = datePicker.find('input')
+    expect(input.prop('value')).to.equal('')
+    input.simulate('change', {target: { value: '3' }})
+    expect(input.prop('value')).to.equal('')
+    input.simulate('change', {target: { value: '1' }})
+    expect(input.prop('value')).to.equal('1')
+  })
 
   it('should handle a click outside of the calendar', () => {
     const datePicker = mount(
@@ -525,5 +558,47 @@ describe('DatePicker', () => {
     datePicker.handleCalendarClickOutside(sandbox.stub({preventDefault: () => {}}))
     expect(openSpy.calledOnce).to.be.true
     expect(openSpy.calledWithExactly(false)).to.be.true
+  })
+  it('should default to the currently selected date', () => {
+    const datePicker = mount(
+      <DatePicker selected={moment('1988-12-30')} />
+    )
+    expect(datePicker.state('preSelection').format('YYYY-MM-DD')).to.equal('1988-12-30')
+  })
+  it('should default to the start date when selecting an end date', () => {
+    const datePicker = mount(
+      <DatePicker startDate={moment('1988-11-30')} selectsEnd />
+    )
+    expect(datePicker.state('preSelection').format('YYYY-MM-DD')).to.equal('1988-11-30')
+  })
+  it('should default to the end date when selecting a start date', () => {
+    const datePicker = mount(
+      <DatePicker endDate={moment('1988-12-31')} selectsStart />
+    )
+    expect(datePicker.state('preSelection').format('YYYY-MM-DD')).to.equal('1988-12-31')
+  })
+  it('should default to a date <= maxDate', () => {
+    const datePicker = mount(
+      <DatePicker maxDate={moment('1982-01-01')} />
+    )
+    expect(datePicker.state('preSelection').format('YYYY-MM-DD')).to.equal('1982-01-01')
+  })
+  it('should default to a date >= minDate', () => {
+    const datePicker = mount(
+      <DatePicker minDate={moment('2063-04-05')} />
+    )
+    expect(datePicker.state('preSelection').format('YYYY-MM-DD')).to.equal('2063-04-05')
+  })
+  it('should default to the openToDate if there is one', () => {
+    const datePicker = mount(
+      <DatePicker openToDate={moment('2020-01-23')} />
+    )
+    expect(datePicker.state('preSelection').format('YYYY-MM-DD')).to.equal('2020-01-23')
+  })
+  it('should otherwise default to the current date', () => {
+    const datePicker = mount(
+      <DatePicker/>
+    )
+    expect(datePicker.state('preSelection').format('YYYY-MM-DD')).to.equal(moment().format('YYYY-MM-DD'))
   })
 })

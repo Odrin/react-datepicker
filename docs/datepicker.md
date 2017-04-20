@@ -39,6 +39,7 @@ type: `element`
 ### `dateFormat`
 
 type: `union(string|array)`
+defaultValue: `'L'`
 
 
 ### `dateFormatCalendar`
@@ -158,6 +159,12 @@ defaultValue: `function() {}`
 type: `func`
 
 
+### `onClickOutside`
+
+type: `func`
+defaultValue: `function() {}`
+
+
 ### `onFocus`
 
 type: `func`
@@ -165,6 +172,12 @@ defaultValue: `function() {}`
 
 
 ### `onMonthChange`
+
+type: `func`
+defaultValue: `function() {}`
+
+
+### `onSelect`
 
 type: `func`
 defaultValue: `function() {}`
@@ -288,6 +301,11 @@ type: `string`
 
 type: `number`
 defaultValue: `moment().utcOffset()`
+
+
+### `value`
+
+type: `string`
 
 
 ### `withPortal`
