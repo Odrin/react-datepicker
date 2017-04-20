@@ -174,7 +174,7 @@ export default class Calendar extends React.Component {
     });
   }
 
-  handleYearChange(year) {
+  handleYearChange = (year) => {
     this.changeTab(TAB_MONTH);
     this.changeYear(year);
   }
@@ -223,7 +223,7 @@ export default class Calendar extends React.Component {
 
   handlePreviousClick = () => {
     if (this.state.tab.id === TAB_MONTH.id) {
-      this.changeMonth(this.state.date.month() - 1);
+      this.decreaseMonth();
     }
 
     if (this.state.tab.id === TAB_YEAR.id) {
@@ -233,7 +233,7 @@ export default class Calendar extends React.Component {
 
   handleNextClick = () => {
     if (this.state.tab.id === TAB_MONTH.id) {
-      this.changeMonth(this.state.date.month() + 1);
+      this.increaseMonth();
     }
 
     if (this.state.tab.id === TAB_YEAR.id) {

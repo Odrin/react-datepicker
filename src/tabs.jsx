@@ -1,22 +1,21 @@
 import React from 'react'
 import classnames from 'classnames'
+import PropTypes from 'prop-types'
 
-var Tabs = React.createClass({
-  displayName: 'Tabs',
-
-  propTypes: {
-    tabs: React.PropTypes.arrayOf(
-      React.PropTypes.shape({
-        id: React.PropTypes.number,
-        title: React.PropTypes.string
+export default class Tabs extends React.Component {
+  static propTypes = {
+    tabs: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.number,
+        title: PropTypes.string
       }).isRequired
     ).isRequired,
-    tab: React.PropTypes.shape({
-      id: React.PropTypes.number,
-      title: React.PropTypes.string
+    tab: PropTypes.shape({
+      id: PropTypes.number,
+      title: PropTypes.string
     }).isRequired,
-    onChange: React.PropTypes.func.isRequired
-  },
+    onChange: PropTypes.func.isRequired
+  }
 
   shouldComponentUpdate(nextProps, nextState) {
     if (nextProps.tabs !== this.props.tabs) {
@@ -28,11 +27,11 @@ var Tabs = React.createClass({
     }
 
     return false;
-  },
+  }
 
   onChange (tab) {
     this.props.onChange(tab);
-  },
+  }
 
   renderTabs() {
     return this.props.tabs.map((tab, index, array) => (
@@ -43,7 +42,7 @@ var Tabs = React.createClass({
         <span className="react-datepicker__tab-title">{tab.title}</span>
       </div>
     ));
-  },
+  }
 
   render () {
     return (
@@ -52,6 +51,4 @@ var Tabs = React.createClass({
       </div>
     )
   }
-});
-
-module.exports = Tabs;
+}

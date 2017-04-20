@@ -1,15 +1,14 @@
 import React from 'react'
 import classnames from 'classnames'
+import PropTypes from 'prop-types'
 
-const Year = React.createClass({
-  displayName: 'Year',
-
-  propTypes: {
-    startYear: React.PropTypes.number.isRequired,
-    year: React.PropTypes.number.isRequired,
-    fixedHeight: React.PropTypes.bool,
-    onChange: React.PropTypes.func.isRequired
-  },
+export default class Year extends React.Component {
+  static propTypes = {
+    startYear: PropTypes.number.isRequired,
+    year: PropTypes.number.isRequired,
+    fixedHeight: PropTypes.bool,
+    onChange: PropTypes.func.isRequired
+  }
 
   shouldComponentUpdate(nextProps, nextState) {
     if (nextProps.startYear !== this.props.startYear) {
@@ -21,7 +20,7 @@ const Year = React.createClass({
     }
 
     return false;
-  },
+  }
 
   render () {
     let rows = [];
@@ -55,6 +54,4 @@ const Year = React.createClass({
     )
   }
 
-});
-
-module.exports = Year;
+}
