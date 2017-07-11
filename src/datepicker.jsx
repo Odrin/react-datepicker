@@ -1,14 +1,14 @@
 import Calendar from './calendar'
 import React from 'react'
 import PropTypes from 'prop-types'
-import TetherComponent from './tether_component'
+import PopperComponent, { popperPlacementPositions } from './popper_component'
 import classnames from 'classnames'
 import { isSameDay, isDayDisabled, isDayInRange, getEffectiveMinDate, getEffectiveMaxDate, parseDate, safeDateFormat } from './date_utils'
 import moment from 'moment'
 import onClickOutside from 'react-onclickoutside'
 
-var outsideClickIgnoreClass = 'react-datepicker-ignore-onclickoutside'
-var WrappedCalendar = onClickOutside(Calendar)
+const outsideClickIgnoreClass = 'react-datepicker-ignore-onclickoutside'
+const WrappedCalendar = onClickOutside(Calendar)
 
 /**
  * General datepicker component.
@@ -16,6 +16,7 @@ var WrappedCalendar = onClickOutside(Calendar)
 
 export default class DatePicker extends React.Component {
   static propTypes = {
+    allowSameDay: PropTypes.bool,
     autoComplete: PropTypes.string,
     autoFocus: PropTypes.bool,
     calendarClassName: PropTypes.string,
@@ -27,6 +28,7 @@ export default class DatePicker extends React.Component {
       PropTypes.array
     ]),
     dateFormatCalendar: PropTypes.string,
+    dayClassName: PropTypes.func,
     disabled: PropTypes.bool,
     disabledKeyboardNavigation: PropTypes.bool,
     dropdownMode: PropTypes.oneOf(['scroll', 'select']).isRequired,
@@ -34,6 +36,7 @@ export default class DatePicker extends React.Component {
     excludeDates: PropTypes.array,
     filterDate: PropTypes.func,
     fixedHeight: PropTypes.bool,
+    formatWeekNumber: PropTypes.func,
     highlightDates: PropTypes.array,
     id: PropTypes.string,
     includeDates: PropTypes.array,
@@ -54,11 +57,10 @@ export default class DatePicker extends React.Component {
     openToDate: PropTypes.object,
     peekNextMonth: PropTypes.bool,
     placeholderText: PropTypes.string,
-    popoverAttachment: PropTypes.string,
-    popoverTargetAttachment: PropTypes.string,
-    popoverTargetOffset: PropTypes.string,
+    popperClassName: PropTypes.string, // <PopperComponent/> props
+    popperModifiers: PropTypes.object, // <PopperComponent/> props
+    popperPlacement: PropTypes.oneOf(popperPlacementPositions), // <PopperComponent/> props
     readOnly: PropTypes.bool,
-    renderCalendarTo: PropTypes.any,
     required: PropTypes.bool,
     scrollableYearDropdown: PropTypes.bool,
     selected: PropTypes.object,
@@ -70,17 +72,20 @@ export default class DatePicker extends React.Component {
     forceShowMonthNavigation: PropTypes.bool,
     startDate: PropTypes.object,
     tabIndex: PropTypes.number,
-    tetherConstraints: PropTypes.array,
     title: PropTypes.string,
     todayButton: PropTypes.string,
+    useWeekdaysShort: PropTypes.bool,
     utcOffset: PropTypes.number,
     value: PropTypes.string,
+    weekLabel: PropTypes.string,
     withPortal: PropTypes.bool,
-    withTabs: PropTypes.bool
+    withTabs: PropTypes.bool,
+    yearDropdownItemNumber: React.PropTypes.number
   }
 
   static get defaultProps () {
     return {
+      allowSameDay: false,
       dateFormat: 'L',
       dateFormatCalendar: 'MMMM YYYY',
       onChange () {},
@@ -92,15 +97,6 @@ export default class DatePicker extends React.Component {
       onSelect () {},
       onClickOutside () {},
       onMonthChange () {},
-      popoverAttachment: 'top left',
-      popoverTargetAttachment: 'bottom left',
-      popoverTargetOffset: '10px 0',
-      tetherConstraints: [
-        {
-          to: 'window',
-          attachment: 'together'
-        }
-      ],
       utcOffset: moment().utcOffset(),
       monthsShown: 1,
       withPortal: false,
@@ -110,14 +106,19 @@ export default class DatePicker extends React.Component {
 
   constructor (props) {
     super(props)
-    this.state = this.getInitialState()
+    this.state = this.calcInitialState()
   }
 
-  getInitialState = () => {
+  componentWillUnmount () {
+    this.clearPreventFocusTimeout()
+  }
+
+  calcInitialState = () => {
     const defaultPreSelection =
       this.props.openToDate ? moment(this.props.openToDate)
       : this.props.selectsEnd && this.props.startDate ? moment(this.props.startDate)
       : this.props.selectsStart && this.props.endDate ? moment(this.props.endDate)
+      : this.props.utcOffset ? moment.utc().utcOffset(this.props.utcOffset)
       : moment()
     const minDate = getEffectiveMinDate(this.props)
     const maxDate = getEffectiveMaxDate(this.props)
@@ -133,10 +134,6 @@ export default class DatePicker extends React.Component {
     }
   }
 
-  componentWillUnmount () {
-    this.clearPreventFocusTimeout()
-  }
-
   clearPreventFocusTimeout = () => {
     if (this.preventFocusTimeout) {
       clearTimeout(this.preventFocusTimeout)
@@ -150,7 +147,7 @@ export default class DatePicker extends React.Component {
   setOpen = (open) => {
     this.setState({
       open: open,
-      preSelection: open && this.state.open ? this.state.preSelection : this.getInitialState().preSelection
+      preSelection: open && this.state.open ? this.state.preSelection : this.calcInitialState().preSelection
     })
   }
 
@@ -168,7 +165,7 @@ export default class DatePicker extends React.Component {
 
   deferFocusInput = () => {
     this.cancelFocusInput()
-    this.inputFocusTimeout = window.setTimeout(() => this.setFocus(), 1)
+    this.inputFocusTimeout = setTimeout(() => this.setFocus(), 1)
   }
 
   handleDropdownFocus = () => {
@@ -223,7 +220,7 @@ export default class DatePicker extends React.Component {
       return
     }
 
-    if (!isSameDay(this.props.selected, changedDate)) {
+    if (!isSameDay(this.props.selected, changedDate) || this.props.allowSameDay) {
       if (changedDate !== null) {
         if (this.props.selected) {
           changedDate = moment(changedDate).set({
@@ -263,25 +260,26 @@ export default class DatePicker extends React.Component {
   }
 
   onInputKeyDown = (event) => {
+    const eventKey = event.key
     if (!this.state.open && !this.props.inline) {
-      if (/^Arrow/.test(event.key)) {
+      if (eventKey !== 'Enter' && eventKey !== 'Escape' && eventKey !== 'Tab') {
         this.onInputClick()
       }
       return
     }
     const copy = moment(this.state.preSelection)
-    if (event.key === 'Enter') {
+    if (eventKey === 'Enter') {
       event.preventDefault()
       this.handleSelect(copy, event)
-    } else if (event.key === 'Escape') {
+    } else if (eventKey === 'Escape') {
       event.preventDefault()
       this.setOpen(false)
-    } else if (event.key === 'Tab') {
+    } else if (eventKey === 'Tab') {
       this.setOpen(false)
     }
     if (!this.props.disabledKeyboardNavigation) {
       let newSelection
-      switch (event.key) {
+      switch (eventKey) {
         case 'ArrowLeft':
           event.preventDefault()
           newSelection = copy.subtract(1, 'days')
@@ -332,6 +330,7 @@ export default class DatePicker extends React.Component {
         ref="calendar"
         locale={this.props.locale}
         dateFormat={this.props.dateFormatCalendar}
+        useWeekdaysShort={this.props.useWeekdaysShort}
         dropdownMode={this.props.dropdownMode}
         selected={this.props.selected}
         preSelection={this.state.preSelection}
@@ -346,6 +345,7 @@ export default class DatePicker extends React.Component {
         excludeDates={this.props.excludeDates}
         filterDate={this.props.filterDate}
         onClickOutside={this.handleCalendarClickOutside}
+        formatWeekNumber={this.props.formatWeekNumber}
         highlightDates={this.props.highlightDates}
         includeDates={this.props.includeDates}
         inline={this.props.inline}
@@ -356,14 +356,17 @@ export default class DatePicker extends React.Component {
         forceShowMonthNavigation={this.props.forceShowMonthNavigation}
         scrollableYearDropdown={this.props.scrollableYearDropdown}
         todayButton={this.props.todayButton}
+        weekLabel={this.props.weekLabel}
         utcOffset={this.props.utcOffset}
         outsideClickIgnoreClass={outsideClickIgnoreClass}
         fixedHeight={this.props.fixedHeight}
         monthsShown={this.props.monthsShown}
         onDropdownFocus={this.handleDropdownFocus}
         onMonthChange={this.props.onMonthChange}
+        dayClassName={this.props.dayClassName}
         withTabs={this.props.withTabs}
-        className={this.props.calendarClassName}>
+        className={this.props.calendarClassName}
+        yearDropdownItemNumber={this.props.yearDropdownItemNumber}>
       {this.props.children}
     </WrappedCalendar>
   }
@@ -439,19 +442,18 @@ export default class DatePicker extends React.Component {
     }
 
     return (
-      <TetherComponent
-          classPrefix={'react-datepicker__tether'}
-          attachment={this.props.popoverAttachment}
-          targetAttachment={this.props.popoverTargetAttachment}
-          targetOffset={this.props.popoverTargetOffset}
-          renderElementTo={this.props.renderCalendarTo}
-          constraints={this.props.tetherConstraints}>
-        <div className="react-datepicker__input-container">
-          {this.renderDateInput()}
-          {this.renderClearButton()}
-        </div>
-        {calendar}
-      </TetherComponent>
+      <PopperComponent
+          className={this.props.popperClassName}
+          hidePopper={(!this.state.open || this.props.disabled)}
+          popperModifiers={this.props.popperModifiers}
+          targetComponent={
+            <div className="react-datepicker__input-container">
+              {this.renderDateInput()}
+              {this.renderClearButton()}
+            </div>
+          }
+          popperComponent={calendar}
+          popperPlacement={this.props.popperPlacement}/>
     )
   }
 }

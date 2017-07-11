@@ -6,18 +6,20 @@ import CodeExampleComponent from './code_example_component'
 import CustomDateFormat from './examples/custom_date_format'
 import CustomClassName from './examples/custom_class_name'
 import CustomCalendarClassName from './examples/custom_calendar_class_name'
+import CustomDayClassNames from './examples/custom_day_class_names'
 import PlaceholderText from './examples/placeholder_text'
 import SpecificDateRange from './examples/specific_date_range'
 import Locale from './examples/locale'
 import ExcludeDates from './examples/exclude_dates'
 import HighlightDates from './examples/highlight_dates'
+import HighlightDatesRanges from './examples/highlight_dates_with_ranges'
 import IncludeDates from './examples/include_dates'
 import FilterDates from './examples/filter_dates'
 import Disabled from './examples/disabled'
 import DisabledKeyboardNavigation from './examples/disabled_keyboard_navigation'
 import ClearInput from './examples/clear_input'
 import OnBlurCallbacks from './examples/on_blur_callbacks'
-import Placement from './examples/placement'
+import ConfigurePopper from './examples/configurePopper'
 import DateRange from './examples/date_range'
 import TabIndex from './examples/tab_index'
 import YearDropdown from './examples/year_dropdown'
@@ -64,6 +66,10 @@ export default class exampleComponents extends React.Component {
       component: <CustomCalendarClassName />
     },
     {
+    title: 'Custom day class names',
+    component: <CustomDayClassNames />
+  },
+  {
       title: 'Today button',
       component: <Today />
     },
@@ -92,6 +98,10 @@ export default class exampleComponents extends React.Component {
       component: <HighlightDates />
     },
     {
+    title: 'Highlight dates with custom class names and ranges',
+    component: <HighlightDatesRanges />
+  },
+  {
       title: 'Include dates',
       component: <IncludeDates />
     },
@@ -120,8 +130,8 @@ export default class exampleComponents extends React.Component {
       component: <OnBlurCallbacks />
     },
     {
-      title: 'Configure Popover Placement',
-      component: <Placement />
+    title: 'Configure Popper Properties',
+    component: <ConfigurePopper />
     },
     {
       title: 'Portal version',

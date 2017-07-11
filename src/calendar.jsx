@@ -30,11 +30,13 @@ export default class Calendar extends React.Component {
       PropTypes.string,
       PropTypes.array
     ]).isRequired,
+    dayClassName: PropTypes.func,
     dropdownMode: PropTypes.oneOf(['scroll', 'select']).isRequired,
     endDate: PropTypes.object,
     excludeDates: PropTypes.array,
     filterDate: PropTypes.func,
     fixedHeight: PropTypes.bool,
+    formatWeekNumber: PropTypes.func,
     highlightDates: PropTypes.array,
     includeDates: PropTypes.array,
     inline: PropTypes.bool,
@@ -59,8 +61,11 @@ export default class Calendar extends React.Component {
     showYearDropdown: PropTypes.bool,
     startDate: PropTypes.object,
     todayButton: PropTypes.string,
+    useWeekdaysShort: PropTypes.bool,
     utcOffset: PropTypes.number,
-    withTabs: PropTypes.bool
+    withTabs: PropTypes.bool,
+    weekLabel: PropTypes.string,
+    yearDropdownItemNumber: React.PropTypes.number
   }
 
   static get defaultProps () {
@@ -110,24 +115,17 @@ export default class Calendar extends React.Component {
     const minDate = getEffectiveMinDate(this.props)
     const maxDate = getEffectiveMaxDate(this.props)
     const current = moment.utc().utcOffset(utcOffset)
-    const initialDate = preSelection || selected
+    const initialDate = openToDate || selected || preSelection
     if (initialDate) {
       return initialDate
-    } else if (minDate && maxDate && openToDate && openToDate.isBetween(minDate, maxDate)) {
-      return openToDate
-    } else if (minDate && openToDate && openToDate.isAfter(minDate)) {
-      return openToDate
-    } else if (minDate && minDate.isAfter(current)) {
-      return minDate
-    } else if (maxDate && openToDate && openToDate.isBefore(maxDate)) {
-      return openToDate
-    } else if (maxDate && maxDate.isBefore(current)) {
-      return maxDate
-    } else if (openToDate) {
-      return openToDate
     } else {
-      return current
+      if (minDate && current.isBefore(minDate)) {
+        return minDate
+      } else if (maxDate && current.isAfter(maxDate)) {
+        return maxDate
+      }
     }
+    return current
   }
 
   localizeMoment = date => date.clone().locale(this.props.locale || moment.locale())
@@ -207,15 +205,18 @@ export default class Calendar extends React.Component {
     if (this.props.showWeekNumbers) {
       dayNames.push(
         <div key="W" className="react-datepicker__day-name">
-          #
+            {this.props.weekLabel || '#'}
         </div>
       )
     }
     return dayNames.concat([0, 1, 2, 3, 4, 5, 6].map(offset => {
       const day = startOfWeek.clone().add(offset, 'days')
+      const weekDayName = this.props.useWeekdaysShort
+          ? day.localeData().weekdaysShort(day)
+          : day.localeData().weekdaysMin(day)
       return (
         <div key={offset} className="react-datepicker__day-name">
-          {day.localeData().weekdaysMin(day)}
+          {weekDayName}
         </div>
       )
     }))
@@ -299,7 +300,8 @@ export default class Calendar extends React.Component {
           minDate={this.props.minDate}
           maxDate={this.props.maxDate}
           year={this.state.date.year()}
-          scrollableYearDropdown={this.props.scrollableYearDropdown} />
+          scrollableYearDropdown={this.props.scrollableYearDropdown}
+          yearDropdownItemNumber={this.props.yearDropdownItemNumber} />
     )
   }
 
@@ -311,6 +313,7 @@ export default class Calendar extends React.Component {
       <MonthDropdown
           dropdownMode={this.props.dropdownMode}
           locale={this.props.locale}
+          dateFormat={this.props.dateFormat}
           onChange={this.changeMonth}
           month={this.state.date.month()} />
     )
@@ -368,9 +371,11 @@ export default class Calendar extends React.Component {
               this.state.tab.id === TAB_MONTH.id ?
                 <Month
                   day={monthDate}
+                dayClassName={this.props.dayClassName}
                   onDayClick={this.handleDayClick}
                   onDayMouseEnter={this.handleDayMouseEnter}
                   onMouseLeave={this.handleMonthMouseLeave}
+                formatWeekNumber={this.props.formatWeekNumber}
                   minDate={this.props.minDate}
                   maxDate={this.props.maxDate}
                   excludeDates={this.props.excludeDates}
