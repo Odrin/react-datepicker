@@ -1,6 +1,10 @@
 @import "variables";
 @import "mixins";
 
+.react-datepicker-wrapper {
+  display: inline-block;
+}
+
 .react-datepicker {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: $datepicker__font-size;
@@ -17,33 +21,41 @@
   left: 50px;
 }
 
-.popper[data-placement^="bottom"] {
-  margin-top: $datepicker__triangle-size + 2px;
-  .react-datepicker__triangle {
-    @extend %triangle-arrow-up;
-  }
-}
+.react-datepicker-popper {
+  z-index: 1;
 
-.popper[data-placement^="top"] {
-  margin-bottom: $datepicker__triangle-size - 2px;
-  .react-datepicker__triangle {
-    @extend %triangle-arrow-down;
-  }
-}
+  &[data-placement^="bottom"] {
+    margin-top: $datepicker__triangle-size + 2px;
 
-.popper[data-placement^="right"] {
-  margin-left: $datepicker__triangle-size;
-  .react-datepicker__triangle {
-    left: auto;
-    right: 42px;
+    .react-datepicker__triangle {
+      @extend %triangle-arrow-up;
+    }
   }
-}
 
-.popper[data-placement^="left"] {
-  margin-right: $datepicker__triangle-size;
-  .react-datepicker__triangle {
-    left: 42px;
-    right: auto;
+  &[data-placement^="top"] {
+    margin-bottom: $datepicker__triangle-size - 2px;
+
+    .react-datepicker__triangle {
+      @extend %triangle-arrow-down;
+    }
+  }
+
+  &[data-placement^="right"] {
+    margin-left: $datepicker__triangle-size;
+
+    .react-datepicker__triangle {
+      left: auto;
+      right: 42px;
+    }
+  }
+
+  &[data-placement^="left"] {
+    margin-right: $datepicker__triangle-size;
+
+    .react-datepicker__triangle {
+      left: 42px;
+      right: auto;
+    }
   }
 }
 
@@ -144,6 +156,13 @@
   line-height: $datepicker__item-size;
   text-align: center;
   margin: $datepicker__day-margin;
+  &.react-datepicker__week-number--clickable {
+    cursor: pointer;
+    &:hover {
+      border-radius: $datepicker__border-radius;
+      background-color: $datepicker__background-color;
+    }
+  }
 }
 
 .react-datepicker__day-names {
